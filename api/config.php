@@ -19,7 +19,7 @@ define('DISCORD_CLIENT_ID', '1371727629547339797');
 define('DISCORD_CLIENT_SECRET', 'p7HPM6_MKEuWohvqfqNwZ5nMjtVPus2-');
 // Debe coincidir EXACTAMENTE (incluyendo https:// y la ruta) con lo que registres
 // en el portal de desarrolladores de Discord, en "Redirects".
-define('DISCORD_REDIRECT_URI', 'https://sapdvidarol.vercel.app/api/discord-callback.php');
+define('DISCORD_REDIRECT_URI', 'https://sapdvidarol.com/api/discord-callback.php');
 
 // --- Seguridad de sesión ---
 // Genera un valor aleatorio largo y único, distinto en cada instalación.
