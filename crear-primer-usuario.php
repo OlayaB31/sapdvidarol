@@ -18,10 +18,10 @@
 require_once __DIR__ . '/api/config.php';
 
 // --- EDITA ESTOS 4 VALORES ---
-$username = 'admin';
-$password = 'CambiaEstaPassword123!';
-$nombreCompleto = 'Oficial J. Reyes';
-$numeroPlaca = '4471';
+$username = 'olaya';
+$password = 'beta07*';
+$nombreCompleto = 'Alejandro Olaya';
+$numeroPlaca = '637586';
 // -------------------------------
 
 $pdo = getDB();
