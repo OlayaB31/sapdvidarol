@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAPD // Portal de Oficiales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0B1E3D;
+    --navy-mid:#13294B;
+    --navy-panel:#16315C;
+    --white:#FFFFFF;
+    --gold:#C9A961;
+    --gold-soft:rgba(201,169,97,0.16);
+    --blue-action:#2E73C9;
+    --green-active:#1A7A4C;
+    --red-alert:#B91C1C;
+    --line:rgba(255,255,255,0.09);
+    --text-dim:rgba(255,255,255,0.55);
+    --text-mid:rgba(255,255,255,0.78);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html,body{
+    background:var(--navy-deep);
+    color:var(--white);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Oswald',sans-serif;}
+
+  /* ===== reduced motion ===== */
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  /* ===================== LOGIN SCREEN ===================== */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(46,115,201,0.16), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(201,169,97,0.10), transparent 40%),
+      var(--navy-deep);
+  }
+  .grid-overlay{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:42px 42px;
+    pointer-events:none;
+  }
+  .login-card{
+    position:relative;
+    z-index:2;
+    width:min(420px, 90vw);
+    background:linear-gradient(160deg, var(--navy-panel), var(--navy-mid));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:40px 36px 34px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.45);
+    animation:rise .5s ease both;
+  }
+  @keyframes rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+
+  .badge-mark{
+    width:64px; height:64px; margin:0 auto 18px;
+    display:block;
+  }
+  .login-card h1{
+    text-align:center;
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  .login-card .sub{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:13px;
+    margin:0 0 28px;
+  }
+  .step{display:none;}
+  .step.active{display:block;}
+
+  .discord-btn{
+    width:100%;
+    padding:13px 16px;
+    background:#5865F2;
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    cursor:pointer;
+    transition:filter .15s ease, transform .15s ease;
+  }
+  .discord-btn:hover{filter:brightness(1.08);}
+  .discord-btn:active{transform:scale(0.985);}
+  .discord-btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+  .divider-text{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin:20px 0;
+    position:relative;
+  }
+  .divider-text::before,.divider-text::after{
+    content:'';
+    position:absolute; top:50%;
+    width:30%; height:1px;
+    background:var(--line);
+  }
+  .divider-text::before{left:0;}
+  .divider-text::after{right:0;}
+
+  .field-label{
+    display:block;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:7px;
+  }
+  .code-inputs{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .code-inputs input{
+    width:100%;
+    aspect-ratio:1;
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:20px;
+    font-weight:700;
+    background:var(--navy-deep);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    color:var(--white);
+    transition:border-color .15s ease;
+  }
+  .code-inputs input:focus{
+    outline:none;
+    border-color:var(--blue-action);
+  }
+  .verify-note{
+    font-size:12px;
+    color:var(--text-dim);
+    line-height:1.5;
+    margin:0 0 20px;
+  }
+  .verify-note b{color:var(--gold);}
+
+  .login-error{
+    display:none;
+    background:rgba(185,28,28,0.12);
+    border:1px solid rgba(185,28,28,0.35);
+    color:#FCA5A5;
+    font-size:12.5px;
+    padding:10px 13px;
+    border-radius:8px;
+    margin:0 0 16px;
+  }
+  .login-error.show{display:block;}
+
+  .link-btn{
+    width:100%;
+    background:none;
+    border:none;
+    color:var(--blue-action);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    padding:6px 0;
+    font-family:'Inter';
+  }
+  .link-btn:hover{text-decoration:underline;}
+  .link-btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+  .primary-btn{
+    width:100%;
+    padding:13px 16px;
+    background:var(--gold);
+    border:none;
+    border-radius:8px;
+    color:#1a1404;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    cursor:pointer;
+    transition:filter .15s ease, transform .15s ease;
+  }
+  .primary-btn:hover{filter:brightness(1.06);}
+  .primary-btn:active{transform:scale(0.985);}
+  .primary-btn:focus-visible{outline:2px solid var(--white); outline-offset:2px;}
+  .primary-btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  .login-meta{
+    margin-top:24px;
+    text-align:center;
+    font-size:11px;
+    color:var(--text-dim);
+    letter-spacing:.04em;
+  }
+  .login-meta .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--green-active);
+    display:inline-block;
+    margin-right:6px;
+    box-shadow:0 0 0 0 rgba(26,122,76,0.6);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(26,122,76,.55);}
+    70%{box-shadow:0 0 0 7px rgba(26,122,76,0);}
+    100%{box-shadow:0 0 0 0 rgba(26,122,76,0);}
+  }
+
+  .scan-line{
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation:scan 2.4s linear infinite;
+    opacity:.7;
+  }
+  @keyframes scan{
+    0%{transform:translateY(0);}
+    100%{transform:translateY(420px);}
+  }
+
+  /* ===================== APP SHELL ===================== */
+  #app{display:none; min-height:100vh;}
+  #app.active{display:flex;}
+
+  .sidebar{
+    width:236px;
+    flex-shrink:0;
+    background:var(--navy-panel);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:22px 16px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 6px 20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:18px;
+  }
+  .brand svg{width:34px; height:34px; flex-shrink:0;}
+  .brand .t1{font-family:'Oswald'; font-size:15px; letter-spacing:.05em; line-height:1.15;}
+  .brand .t2{font-size:10.5px; color:var(--text-dim); letter-spacing:.04em;}
+
+  .nav-group-label{
+    font-size:10.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:14px 8px 8px;
+  }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:10px 12px;
+    border-radius:8px;
+    color:var(--text-mid);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    border:none;
+    background:none;
+    width:100%;
+    text-align:left;
+    font-family:'Inter';
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item svg{width:17px; height:17px; flex-shrink:0; opacity:.85;}
+  .nav-item:hover{background:rgba(255,255,255,0.05); color:var(--white);}
+  .nav-item.active{background:var(--gold-soft); color:var(--gold);}
+  .nav-item.active svg{opacity:1;}
+  .nav-item:focus-visible{outline:2px solid var(--blue-action); outline-offset:1px;}
+
+  .sidebar-footer{
+    margin-top:auto;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .logout-btn{
+    display:flex; align-items:center; gap:9px;
+    color:var(--text-dim);
+    font-size:12.5px;
+    background:none; border:none;
+    cursor:pointer;
+    padding:8px 12px;
+    width:100%;
+    border-radius:8px;
+    font-family:'Inter';
+  }
+  .logout-btn:hover{color:var(--red-alert); background:rgba(185,28,28,0.08);}
+
+  .main{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    height:64px;
+    flex-shrink:0;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+    background:rgba(11,30,61,0.6);
+    backdrop-filter:blur(6px);
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .topbar h2{
+    font-family:'Oswald'; font-size:18px; letter-spacing:.03em; margin:0;
+    text-transform:uppercase;
+  }
+  .topbar .right{display:flex; align-items:center; gap:16px;}
+  .status-chip{
+    display:flex; align-items:center; gap:7px;
+    font-size:11.5px; color:var(--text-mid);
+    background:rgba(26,122,76,0.12);
+    border:1px solid rgba(26,122,76,0.3);
+    padding:6px 11px;
+    border-radius:20px;
+  }
+  .status-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--green-active);}
+  .profile-chip{
+    display:flex; align-items:center; gap:9px;
+    cursor:default;
+  }
+  .profile-chip .av{
+    width:32px;height:32px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue-action),var(--navy-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald'; font-size:12px; font-weight:600;
+    border:1.5px solid var(--gold);
+  }
+  .profile-chip .name{font-size:13px; font-weight:600; line-height:1.2;}
+  .profile-chip .rank{font-size:11px; color:var(--gold); line-height:1.2;}
+
+  .content{
+    padding:28px;
+    overflow-y:auto;
+  }
+  .view{display:none;}
+  .view.active{display:block; animation:fadeIn .35s ease both;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---- shared bits ---- */
+  .card{
+    background:var(--navy-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .grid{display:grid; gap:18px;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  .g3{grid-template-columns:repeat(3,1fr);}
+  .g2{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:1080px){.g4{grid-template-columns:repeat(2,1fr);} .g3{grid-template-columns:repeat(2,1fr);}}
+
+  .stat-card .num{font-family:'Oswald'; font-size:30px; line-height:1;}
+  .stat-card .lbl{font-size:12px; color:var(--text-dim); margin-top:6px;}
+  .stat-card .delta{font-size:11.5px; margin-top:10px; display:inline-flex; align-items:center; gap:4px;}
+  .delta.up{color:var(--green-active);}
+  .delta.down{color:var(--red-alert);}
+
+  .section-title{
+    font-family:'Oswald';
+    font-size:13px;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:0 0 16px;
+  }
+
+  /* Officer of the week */
+  .ootw{
+    display:flex;
+    gap:24px;
+    align-items:center;
+    background:
+      linear-gradient(120deg, rgba(201,169,97,0.10), transparent 60%),
+      var(--navy-panel);
+    border:1px solid rgba(201,169,97,0.25);
+  }
+  .ootw .portrait{
+    width:88px; height:88px; border-radius:14px;
+    background:linear-gradient(150deg, var(--blue-action), var(--navy-deep));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald'; font-size:30px;
+    border:2px solid var(--gold);
+    flex-shrink:0;
+  }
+  .ootw .name{font-family:'Oswald'; font-size:20px; letter-spacing:.02em;}
+  .ootw .rank-line{color:var(--gold); font-size:13px; margin-top:2px;}
+  .ootw .quote{color:var(--text-mid); font-size:13px; margin-top:10px; line-height:1.5; max-width:560px;}
+  .ootw .badge-num{margin-left:auto; text-align:right; flex-shrink:0;}
+  .ootw .badge-num .n{font-family:'JetBrains Mono'; font-size:26px; color:var(--gold);}
+  .ootw .badge-num .l{font-size:10.5px; color:var(--text-dim); letter-spacing:.06em; text-transform:uppercase;}
+
+  /* Tables */
+  table{width:100%; border-collapse:collapse;}
+  th{
+    text-align:left;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    padding:0 14px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  td{
+    padding:13px 14px;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  tr:last-child td{border-bottom:none;}
+  .pill{
+    display:inline-block;
+    font-size:11px;
+    padding:3px 10px;
+    border-radius:20px;
+    font-weight:600;
+  }
+  .pill.green{background:rgba(26,122,76,0.15); color:#4ADE80;}
+  .pill.gold{background:var(--gold-soft); color:var(--gold);}
+  .pill.red{background:rgba(185,28,28,0.15); color:#F87171;}
+  .pill.blue{background:rgba(46,115,201,0.15); color:#7CB0F0;}
+
+  /* Hierarchy */
+  .rank-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:14px 16px;
+    border-radius:8px;
+    transition:background .15s ease;
+  }
+  .rank-row:hover{background:rgba(255,255,255,0.03);}
+  .rank-row + .rank-row{border-top:1px solid var(--line);}
+  .rank-row .lvl{
+    font-family:'JetBrains Mono';
+    font-size:11px;
+    color:var(--navy-deep);
+    background:var(--gold);
+    width:26px; height:26px;
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    font-weight:700;
+  }
+  .rank-row .info{flex:1;}
+  .rank-row .rname{font-weight:600; font-size:14px;}
+  .rank-row .rdesc{font-size:12px; color:var(--text-dim); margin-top:2px;}
+  .rank-row .count{font-family:'JetBrains Mono'; font-size:13px; color:var(--text-mid);}
+
+  /* Vehicles */
+  .veh-card{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:var(--navy-mid);
+  }
+  .veh-img{
+    height:120px;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 10px, transparent 10px 20px),
+      linear-gradient(160deg, var(--navy-deep), var(--navy-panel));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .veh-img svg{width:64px; height:64px; opacity:.85;}
+  .veh-body{padding:16px;}
+  .veh-name{font-family:'Oswald'; font-size:14.5px; letter-spacing:.02em;}
+  .veh-unit{font-size:11.5px; color:var(--gold); margin-top:2px;}
+  .veh-specs{display:flex; gap:14px; margin-top:12px; font-size:11.5px; color:var(--text-dim);}
+
+  /* Rules */
+  .rule-item{
+    display:flex; gap:14px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .rule-item:last-child{border-bottom:none;}
+  .rule-num{
+    font-family:'JetBrains Mono';
+    color:var(--gold);
+    font-size:13px;
+    flex-shrink:0;
+    width:32px;
+  }
+  .rule-text b{display:block; font-size:14px; margin-bottom:3px;}
+  .rule-text p{margin:0; font-size:13px; color:var(--text-mid); line-height:1.55;}
+
+  /* Records upload */
+  .dropzone{
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    padding:40px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color:var(--blue-action);
+    background:rgba(46,115,201,0.05);
+  }
+  .dropzone svg{width:38px; height:38px; color:var(--text-dim); margin-bottom:12px;}
+  .dropzone .main-txt{font-size:14px; font-weight:600;}
+  .dropzone .sub-txt{font-size:12px; color:var(--text-dim); margin-top:5px;}
+  #file-input{display:none;}
+
+  .form-row{margin-bottom:16px;}
+  .form-row label{
+    display:block; font-size:12px; color:var(--text-dim);
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px;
+  }
+  .form-row input, .form-row select, .form-row textarea{
+    width:100%;
+    background:var(--navy-deep);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:11px 13px;
+    color:var(--white);
+    font-family:'Inter';
+    font-size:13.5px;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus{
+    outline:none; border-color:var(--blue-action);
+  }
+  .form-row textarea{resize:vertical; min-height:80px;}
+
+  .record-list-item{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .record-list-item:last-child{border-bottom:none;}
+  .record-list-item svg{width:18px; height:18px; color:var(--gold); flex-shrink:0;}
+  .record-list-item .fname{font-size:13px; font-weight:500;}
+  .record-list-item .fmeta{font-size:11px; color:var(--text-dim);}
+  .record-list-item .remove{
+    margin-left:auto;
+    background:none; border:none; color:var(--text-dim);
+    cursor:pointer; font-size:12px;
+  }
+  .record-list-item .remove:hover{color:var(--red-alert);}
+
+  .toast{
+    position:fixed;
+    bottom:24px; right:24px;
+    background:var(--navy-panel);
+    border:1px solid var(--green-active);
+    border-radius:10px;
+    padding:14px 18px;
+    display:flex; align-items:center; gap:10px;
+    font-size:13px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.4);
+    transform:translateY(20px);
+    opacity:0;
+    transition:transform .25s ease, opacity .25s ease;
+    z-index:999;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast svg{width:18px; height:18px; color:var(--green-active);}
+
+  .sr-only{
+    position:absolute; width:1px; height:1px;
+    overflow:hidden; clip:rect(0,0,0,0);
+  }
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15); border-radius:4px;}
+
+  @media (max-width:880px){
+    .sidebar{position:fixed; left:-260px; z-index:50; transition:left .2s ease; box-shadow:20px 0 40px rgba(0,0,0,0.4);}
+    .sidebar.open{left:0;}
+    .menu-toggle{display:flex !important;}
+    .g4, .g3, .g2{grid-template-columns:1fr;}
+    .ootw{flex-direction:column; align-items:flex-start; text-align:left;}
+    .ootw .badge-num{margin-left:0; text-align:left;}
+  }
+  .menu-toggle{
+    display:none;
+    background:none; border:none; color:var(--white);
+    width:36px; height:36px; align-items:center; justify-content:center;
+    border-radius:8px; cursor:pointer;
+  }
+  .menu-toggle:hover{background:rgba(255,255,255,0.08);}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="login-screen">
+  <div class="grid-overlay"></div>
+  <div class="login-card">
+    <div class="scan-line" aria-hidden="true"></div>
+
+    <svg class="badge-mark" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+      <path d="M50 4 L90 20 V48 C90 72 72 88 50 96 C28 88 10 72 10 48 V20 Z" fill="#16315C" stroke="#C9A961" stroke-width="2.5"/>
+      <path d="M50 14 L80 26 V48 C80 66 66 79 50 86 C34 79 20 66 20 48 V26 Z" fill="none" stroke="#C9A961" stroke-width="1.2" opacity="0.6"/>
+      <text x="50" y="46" text-anchor="middle" fill="#C9A961" font-family="Oswald" font-size="13" font-weight="700" letter-spacing="1">SAPD</text>
+      <text x="50" y="62" text-anchor="middle" fill="#E8D9B5" font-family="JetBrains Mono" font-size="9">2026</text>
+      <path d="M37 70 L44 77 L64 56" stroke="#C9A961" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    </svg>
+
+    <h1>Portal de Oficiales SAPD</h1>
+    <p class="sub">San Andreas Police Department</p>
+
+    <!-- LOGIN: usuario y contraseña -->
+    <div class="step active" id="step-login">
+      <p class="login-error" id="login-error" role="alert"></p>
+      <div class="form-row">
+        <label for="login-username">Usuario</label>
+        <input id="login-username" type="text" autocomplete="username" placeholder="ej. j.reyes">
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <label for="login-password">Contraseña</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="primary-btn" id="btn-login" type="button" style="margin-top:10px;">Iniciar sesión</button>
+
+      <div class="divider-text">¿No tienes cuenta?</div>
+      <button class="link-btn" id="btn-show-register" type="button">Crear cuenta de oficial</button>
+    </div>
+
+    <!-- REGISTRO -->
+    <div class="step" id="step-register">
+      <p class="login-error" id="register-error" role="alert"></p>
+      <div class="form-row">
+        <label for="reg-nombre">Nombre completo</label>
+        <input id="reg-nombre" type="text" placeholder="ej. Juan Reyes">
+      </div>
+      <div class="form-row">
+        <label for="reg-placa">Número de placa</label>
+        <input id="reg-placa" type="text" inputmode="numeric" placeholder="ej. 4471">
+      </div>
+      <div class="form-row">
+        <label for="reg-username">Usuario</label>
+        <input id="reg-username" type="text" autocomplete="username" placeholder="ej. j.reyes">
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <label for="reg-password">Contraseña</label>
+        <input id="reg-password" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+      </div>
+      <button class="primary-btn" id="btn-register" type="button" style="margin-top:10px;">Crear cuenta</button>
+
+      <div class="divider-text">¿Ya tienes cuenta?</div>
+      <button class="link-btn" id="btn-show-login" type="button">Iniciar sesión</button>
+    </div>
+
+    <div class="login-meta">
+      <span class="dot" aria-hidden="true"></span><span id="login-status-text">Conectando con el servidor...</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <path d="M50 4 L90 20 V48 C90 72 72 88 50 96 C28 88 10 72 10 48 V20 Z" fill="#0B1E3D" stroke="#C9A961" stroke-width="3"/>
+        <text x="50" y="48" text-anchor="middle" fill="#C9A961" font-family="Oswald" font-size="16" font-weight="700">SAPD</text>
+        <path d="M37 64 L44 71 L64 50" stroke="#C9A961" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="t1 display">SAPD</div>
+        <div class="t2">Portal de Oficiales</div>
+      </div>
+    </div>
+
+    <div class="nav-group-label">General</div>
+    <button class="nav-item active" data-view="view-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Panel principal
+    </button>
+    <button class="nav-item" data-view="view-hierarchy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5V12M12 12L6.5 17M12 12L17.5 17"/></svg>
+      Jerarquía
+    </button>
+    <button class="nav-item" data-view="view-vehicles">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 6.5h11.2A2 2 0 0 1 19.5 8l1.5 5"/><rect x="2" y="13" width="20" height="6" rx="1.5"/><circle cx="6.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+      Vehículos
+    </button>
+    <button class="nav-item" data-view="view-rules">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h6l1 2h3a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3z"/><path d="M9 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1H9z"/><path d="M8 12h8M8 16h8"/></svg>
+      Reglamento
+    </button>
+
+    <div class="nav-group-label">Expedientes</div>
+    <button class="nav-item" data-view="view-records">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>
+      Subir antecedentes
+    </button>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="btn-logout">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <h2 id="topbar-title">Panel principal</h2>
+      </div>
+      <div class="right">
+        <span class="status-chip"><span class="dot"></span>Turno activo</span>
+        <div class="profile-chip">
+          <div class="av" id="profile-initials">--</div>
+          <div>
+            <div class="name" id="profile-name">Cargando...</div>
+            <div class="rank" id="profile-rank">—</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section class="view active" id="view-dashboard">
+
+        <!-- Tarjeta de vínculo con Discord -->
+        <div class="card" id="discord-card" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="#5865F2" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.1.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.893.076.076 0 0 0-.04.106c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.001-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03Zm-12.247 9.6c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.956 2.419-2.157 2.419Zm7.86 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.946 2.419-2.157 2.419Z"/></svg>
+            <div>
+              <div style="font-weight:600; font-size:14px;" id="discord-status-title">Tu cuenta de Discord no está vinculada</div>
+              <div style="font-size:12.5px; color:var(--text-dim);" id="discord-status-sub">Vincúlala para que el departamento pueda contactarte por Discord.</div>
+            </div>
+          </div>
+          <a href="/api/discord-link.php" class="discord-btn" id="btn-link-discord" style="width:auto; padding:10px 18px; text-decoration:none;">Vincular Discord</a>
+        </div>
+
+        <div class="grid g4" style="margin-bottom:20px;">
+          <div class="card stat-card">
+            <div class="num mono">37</div>
+            <div class="lbl">Oficiales en turno</div>
+            <div class="delta up">▲ 4 vs. ayer</div>
+          </div>
+          <div class="card stat-card">
+            <div class="num mono">12</div>
+            <div class="lbl">Llamados activos</div>
+            <div class="delta down">▼ 2 vs. ayer</div>
+          </div>
+          <div class="card stat-card">
+            <div class="num mono">214</div>
+            <div class="lbl">Expedientes este mes</div>
+            <div class="delta up">▲ 18 vs. mes pasado</div>
+          </div>
+          <div class="card stat-card">
+            <div class="num mono">96%</div>
+            <div class="lbl">Unidades operativas</div>
+            <div class="delta up">▲ 3%</div>
+          </div>
+        </div>
+
+
+        <p class="section-title">Oficial de la semana</p>
+        <div class="card ootw" style="margin-bottom:20px;">
+          <div class="portrait">RM</div>
+          <div>
+            <div class="name display">Oficial Renata Mejía</div>
+            <div class="rank-line">Detective · Unidad de Investigaciones</div>
+            <p class="quote">"Lideró el operativo que resolvió la cadena de robos en Vinewood, con 6 detenciones limpias y cero quejas de uso de fuerza."</p>
+          </div>
+          <div class="badge-num">
+            <div class="n mono">#2298</div>
+            <div class="l">Número de placa</div>
+          </div>
+        </div>
+
+        <div class="grid g2">
+          <div class="card">
+            <p class="section-title">Últimos expedientes registrados</p>
+            <table>
+              <thead><tr><th>Sospechoso</th><th>Cargo</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>D. Alvarado</td><td>Robo agravado</td><td><span class="pill red">En proceso</span></td></tr>
+                <tr><td>M. Torres</td><td>Posesión ilegal</td><td><span class="pill gold">Pendiente fiscalía</span></td></tr>
+                <tr><td>L. Quintana</td><td>Evasión de control</td><td><span class="pill green">Cerrado</span></td></tr>
+                <tr><td>C. Ferreira</td><td>Conducción temeraria</td><td><span class="pill blue">Citación</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p class="section-title">Comunicados del comando</p>
+            <div class="rule-item" style="border-top:none;">
+              <span class="rule-num mono">●</span>
+              <div class="rule-text"><b>Refuerzo en Vinewood</b><p>Se solicitan 2 unidades adicionales para patrullaje nocturno esta semana.</p></div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-num mono">●</span>
+              <div class="rule-text"><b>Mantenimiento de flota</b><p>Las unidades K-9 estarán en revisión el jueves de 10:00 a 14:00.</p></div>
+            </div>
+            <div class="rule-item">
+              <span class="rule-num mono">●</span>
+              <div class="rule-text"><b>Capacitación de tácticas</b><p>Curso obligatorio de manejo de crisis, sábado 09:00 en la academia.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== HIERARCHY ===== -->
+      <section class="view" id="view-hierarchy">
+        <div class="card">
+          <p class="section-title">Cadena de mando — San Andreas Police Department</p>
+          <div class="rank-row">
+            <div class="lvl mono">01</div>
+            <div class="info"><div class="rname">Jefe de Policía</div><div class="rdesc">Máxima autoridad del departamento. Define políticas y representa al SAPD ante la ciudad.</div></div>
+            <div class="count">1 activo</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">02</div>
+            <div class="info"><div class="rname">Subjefe</div><div class="rdesc">Segundo al mando. Supervisa operaciones generales y reemplaza al Jefe en su ausencia.</div></div>
+            <div class="count">1 activo</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">03</div>
+            <div class="info"><div class="rname">Comandante</div><div class="rdesc">Dirige una división completa (Patrulla, Investigaciones, SWAT, Tránsito).</div></div>
+            <div class="count">4 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">04</div>
+            <div class="info"><div class="rname">Capitán</div><div class="rdesc">Administra un turno o unidad especializada dentro de una división.</div></div>
+            <div class="count">6 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">05</div>
+            <div class="info"><div class="rname">Teniente</div><div class="rdesc">Coordina a los sargentos y supervisa operativos de campo de mayor escala.</div></div>
+            <div class="count">9 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">06</div>
+            <div class="info"><div class="rname">Sargento</div><div class="rdesc">Supervisa directamente a un grupo de oficiales durante el turno.</div></div>
+            <div class="count">14 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">07</div>
+            <div class="info"><div class="rname">Detective</div><div class="rdesc">Investiga casos abiertos, reúne evidencia y prepara expedientes para fiscalía.</div></div>
+            <div class="count">11 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">08</div>
+            <div class="info"><div class="rname">Oficial</div><div class="rdesc">Patrullaje, atención de llamados y aplicación general de la ley.</div></div>
+            <div class="count">37 activos</div>
+          </div>
+          <div class="rank-row">
+            <div class="lvl mono">09</div>
+            <div class="info"><div class="rname">Cadete</div><div class="rdesc">En periodo de formación en la academia, bajo supervisión constante.</div></div>
+            <div class="count">8 activos</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VEHICLES ===== -->
+      <section class="view" id="view-vehicles">
+        <div class="grid g3">
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 6.5h11.2A2 2 0 0 1 19.5 8l1.5 5"/><rect x="2" y="13" width="20" height="6" rx="1.5"/><circle cx="6.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Vapid Stanier</div>
+              <div class="veh-unit">Patrulla — Unidad estándar</div>
+              <div class="veh-specs"><span>4 plazas</span><span>V8</span><span>Sirena LED</span></div>
+            </div>
+          </div>
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 6.5h11.2A2 2 0 0 1 19.5 8l1.5 5"/><rect x="2" y="13" width="20" height="6" rx="1.5"/><circle cx="6.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Bravado Buffalo S</div>
+              <div class="veh-unit">Intercepción — Tránsito</div>
+              <div class="veh-specs"><span>2 plazas</span><span>Turbo</span><span>Alto rendimiento</span></div>
+            </div>
+          </div>
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 6.5h11.2A2 2 0 0 1 19.5 8l1.5 5"/><rect x="2" y="13" width="20" height="6" rx="1.5"/><circle cx="6.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Bruckner LE</div>
+              <div class="veh-unit">SWAT — Asalto táctico</div>
+              <div class="veh-specs"><span>8 plazas</span><span>Blindado</span><span>Todo terreno</span></div>
+            </div>
+          </div>
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 6.5h11.2A2 2 0 0 1 19.5 8l1.5 5"/><rect x="2" y="13" width="20" height="6" rx="1.5"/><circle cx="6.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Vapid Interceptor</div>
+              <div class="veh-unit">K-9 — Unidad canina</div>
+              <div class="veh-specs"><span>Jaula trasera</span><span>Ventilación</span><span>GPS</span></div>
+            </div>
+          </div>
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M5 17l1-6 1.2-4A2 2 0 0 1 9.1 5.5h5.8A2 2 0 0 1 16.8 7l1.2 4 1 6"/><circle cx="8" cy="17.5" r="1.5"/><circle cx="16" cy="17.5" r="1.5"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Sanchez Moto</div>
+              <div class="veh-unit">Patrulla ligera — Tránsito</div>
+              <div class="veh-specs"><span>1 plaza</span><span>Ágil</span><span>Persecución urbana</span></div>
+            </div>
+          </div>
+          <div class="veh-card">
+            <div class="veh-img">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="1.5"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+            </div>
+            <div class="veh-body">
+              <div class="veh-name display">Buckingham Maverick</div>
+              <div class="veh-unit">Aérea — Apoyo táctico</div>
+              <div class="veh-specs"><span>4 plazas</span><span>Reflector</span><span>Vigilancia</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RULES ===== -->
+      <section class="view" id="view-rules">
+        <div class="card">
+          <p class="section-title">Código de conducta del oficial</p>
+          <div class="rule-item">
+            <span class="rule-num mono">01</span>
+            <div class="rule-text"><b>Uso de fuerza progresivo</b><p>La fuerza aplicada debe ser proporcional a la resistencia del sospechoso. Toda escalada debe poder justificarse en el reporte.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">02</span>
+            <div class="rule-text"><b>Identificación obligatoria</b><p>Todo oficial debe identificarse con nombre y número de placa al iniciar un procedimiento, salvo operativos encubiertos autorizados.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">03</span>
+            <div class="rule-text"><b>Registro de body-cam</b><p>Las cámaras corporales deben permanecer activas durante todo el turno de patrullaje y procedimientos de detención.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">04</span>
+            <div class="rule-text"><b>Cadena de custodia de evidencia</b><p>Toda evidencia recolectada debe registrarse en el expediente correspondiente antes de finalizar el turno.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">05</span>
+            <div class="rule-text"><b>Respeto al debido proceso</b><p>Ningún detenido puede ser interrogado sin la lectura previa de sus derechos. El acceso a un abogado no puede ser negado.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">06</span>
+            <div class="rule-text"><b>Conducta fuera de servicio</b><p>El comportamiento del oficial fuera de turno no debe comprometer la imagen ni la confianza pública en el departamento.</p></div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-num mono">07</span>
+            <div class="rule-text"><b>Reporte de incidentes de uso de fuerza</b><p>Cualquier uso de fuerza letal o no letal debe reportarse a Asuntos Internos dentro de las 24 horas.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RECORDS UPLOAD ===== -->
+      <section class="view" id="view-records">
+        <div class="grid g2">
+          <div class="card">
+            <p class="section-title">Nuevo expediente</p>
+            <div class="form-row">
+              <label for="rec-name">Nombre del sospechoso</label>
+              <input id="rec-name" type="text" placeholder="Ej. Daniela Alvarado">
+            </div>
+            <div class="form-row">
+              <label for="rec-charge">Cargo</label>
+              <select id="rec-charge">
+                <option>Robo agravado</option>
+                <option>Posesión ilegal de armas</option>
+                <option>Conducción temeraria</option>
+                <option>Evasión de control policial</option>
+                <option>Agresión</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="rec-notes">Notas del procedimiento</label>
+              <textarea id="rec-notes" placeholder="Describe brevemente el procedimiento, evidencia y testigos..."></textarea>
+            </div>
+            <div class="form-row">
+              <label>Adjuntar evidencia / documento</label>
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Subir archivo de antecedentes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+                <div class="main-txt">Arrastra el archivo aquí o haz clic</div>
+                <div class="sub-txt">PDF, JPG o PNG — máx. 10MB</div>
+              </div>
+              <input type="file" id="file-input">
+            </div>
+            <button class="primary-btn" id="btn-submit-record">Registrar expediente</button>
+          </div>
+
+          <div class="card">
+            <p class="section-title">Archivos adjuntos en esta sesión</p>
+            <div id="record-list">
+              <p style="color:var(--text-dim); font-size:13px;">Aún no has adjuntado ningún archivo.</p>
+            </div>
+
+            <p class="section-title" style="margin-top:28px;">Expedientes recientes del departamento</p>
+            <table>
+              <thead><tr><th>Sospechoso</th><th>Cargo</th><th>Oficial</th></tr></thead>
+              <tbody id="recent-records-body">
+                <tr><td colspan="3" style="color:var(--text-dim);">Cargando expedientes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+  <span id="toast-msg">Acción completada</span>
+</div>
+
+<script>
+  const API = '/api'; // cambia esto si tu carpeta /api está en otra ruta
+
+  const loginScreen = document.getElementById('login-screen');
+  const app = document.getElementById('app');
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+
+  function showToast(msg){
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+
+  async function api(path, options = {}){
+    const res = await fetch(API + path, {
+      credentials: 'include', // imprescindible: para que viaje la cookie de sesión
+      headers: options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' },
+      ...options,
+    });
+    let data;
+    try { data = await res.json(); } catch { data = {}; }
+    if (!res.ok && !data.error) data.error = 'Error de conexión con el servidor (' + res.status + ').';
+    return { res, data };
+  }
+
+  // ---------- LOGIN / REGISTRO ----------
+  const stepLogin = document.getElementById('step-login');
+  const stepRegister = document.getElementById('step-register');
+  const loginError = document.getElementById('login-error');
+  const registerError = document.getElementById('register-error');
+
+  document.getElementById('btn-show-register').addEventListener('click', () => {
+    stepLogin.classList.remove('active');
+    stepRegister.classList.add('active');
+  });
+  document.getElementById('btn-show-login').addEventListener('click', () => {
+    stepRegister.classList.remove('active');
+    stepLogin.classList.add('active');
+  });
+
+  function setError(el, msg){
+    if (!msg){ el.classList.remove('show'); el.textContent = ''; return; }
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  document.getElementById('btn-login').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-login');
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    setError(loginError, null);
+
+    if (!username || !password){
+      setError(loginError, 'Escribe tu usuario y contraseña.');
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    const { res, data } = await api('/login.php', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    btn.disabled = false; btn.textContent = 'Iniciar sesión';
+
+    if (!res.ok || !data.ok){
+      setError(loginError, data.error || 'No se pudo iniciar sesión.');
+      return;
+    }
+    enterApp(data.usuario);
+  });
+
+  document.getElementById('btn-register').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-register');
+    const nombre_completo = document.getElementById('reg-nombre').value.trim();
+    const numero_placa = document.getElementById('reg-placa').value.trim();
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value;
+    setError(registerError, null);
+
+    if (!nombre_completo || !numero_placa || !username || !password){
+      setError(registerError, 'Completa todos los campos.');
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Creando cuenta...';
+    const { res, data } = await api('/register.php', {
+      method: 'POST',
+      body: JSON.stringify({ username, password, nombre_completo, numero_placa }),
+    });
+    btn.disabled = false; btn.textContent = 'Crear cuenta';
+
+    if (!res.ok || !data.ok){
+      setError(registerError, data.error || 'No se pudo crear la cuenta.');
+      return;
+    }
+    // Tras registrarse, vuelve a pedirle iniciar sesión con sus nuevas credenciales
+    const { data: meData } = await api('/me.php');
+    if (meData.logueado){
+      enterApp(meData.usuario);
+    } else {
+      stepRegister.classList.remove('active');
+      stepLogin.classList.add('active');
+      showToast('Cuenta creada. Ahora inicia sesión.');
+    }
+  });
+
+  function enterApp(usuario){
+    loginScreen.style.transition = 'opacity .35s ease';
+    loginScreen.style.opacity = '0';
+    setTimeout(() => {
+      loginScreen.style.display = 'none';
+      app.classList.add('active');
+      renderProfile(usuario);
+      loadRecentRecords();
+    }, 350);
+  }
+
+  function renderProfile(usuario){
+    const initials = usuario.nombre_completo
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(p => p[0].toUpperCase())
+      .join('');
+    document.getElementById('profile-initials').textContent = initials || '--';
+    document.getElementById('profile-name').textContent = usuario.nombre_completo;
+    document.getElementById('profile-rank').textContent = usuario.rango + ' · Placa #' + usuario.numero_placa;
+
+    const discordTitle = document.getElementById('discord-status-title');
+    const discordSub = document.getElementById('discord-status-sub');
+    const discordBtn = document.getElementById('btn-link-discord');
+    if (usuario.discord_username){
+      discordTitle.textContent = 'Discord vinculado: ' + usuario.discord_username;
+      discordSub.textContent = 'Tu cuenta de Discord ya está conectada a tu perfil de oficial.';
+      discordBtn.textContent = 'Re-vincular';
+    } else {
+      discordTitle.textContent = 'Tu cuenta de Discord no está vinculada';
+      discordSub.textContent = 'Vincúlala para que el departamento pueda contactarte por Discord.';
+      discordBtn.textContent = 'Vincular Discord';
+    }
+  }
+
+  // ---------- SESIÓN AL CARGAR LA PÁGINA ----------
+  // Si ya hay una cookie de sesión válida, entra directo sin pedir login otra vez.
+  (async function checkSessionOnLoad(){
+    try {
+      const { data } = await api('/me.php');
+      if (data.logueado){
+        app.classList.add('active');
+        loginScreen.style.display = 'none';
+        renderProfile(data.usuario);
+        loadRecentRecords();
+      }
+    } catch (e) {
+      // Si /api/me.php no responde (backend aún no configurado), simplemente
+      // se queda en la pantalla de login normalmente.
+      console.warn('No se pudo verificar la sesión:', e);
+    }
+
+    // Si Discord nos redirigió de vuelta con éxito, mostrarlo
+    if (new URLSearchParams(location.search).get('discord_vinculado') === '1'){
+      showToast('Cuenta de Discord vinculada correctamente');
+      history.replaceState({}, '', location.pathname);
+    }
+  })();
+
+  // ---------- NAVEGACIÓN ----------
+  const navItems = document.querySelectorAll('.nav-item[data-view]');
+  const views = document.querySelectorAll('.view');
+  const topbarTitle = document.getElementById('topbar-title');
+  const sidebar = document.getElementById('sidebar');
+
+  const titles = {
+    'view-dashboard': 'Panel principal',
+    'view-hierarchy': 'Jerarquía del departamento',
+    'view-vehicles': 'Flota de vehículos',
+    'view-rules': 'Reglamento y código de conducta',
+    'view-records': 'Subir antecedentes'
+  };
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      navItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const target = item.dataset.view;
+      views.forEach(v => v.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      topbarTitle.textContent = titles[target];
+      sidebar.classList.remove('open');
+      if (target === 'view-records') loadRecentRecords();
+    });
+  });
+
+  document.getElementById('menu-toggle').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+  });
+
+  // ---------- LOGOUT ----------
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    await api('/logout.php', { method: 'POST' });
+    app.classList.remove('active');
+    loginScreen.style.display = 'flex';
+    loginScreen.style.opacity = '1';
+    stepRegister.classList.remove('active');
+    stepLogin.classList.add('active');
+    document.getElementById('login-username').value = '';
+    document.getElementById('login-password').value = '';
+  });
+
+  // ---------- SUBIDA DE EXPEDIENTES ----------
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const recordList = document.getElementById('record-list');
+  let selectedFile = null;
+
+  function renderSelectedFile(){
+    if (!selectedFile){
+      recordList.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Aún no has adjuntado ningún archivo.</p>';
+      return;
+    }
+    const sizeKB = (selectedFile.size / 1024).toFixed(0);
+    recordList.innerHTML = `
+      <div class="record-list-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>
+        <div>
+          <div class="fname">${selectedFile.name}</div>
+          <div class="fmeta">${sizeKB} KB · listo para subir</div>
+        </div>
+        <button class="remove" id="remove-file">Quitar</button>
+      </div>`;
+    document.getElementById('remove-file').addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      renderSelectedFile();
+    });
+  }
+
+  function handleFiles(files){
+    if (!files.length) return;
+    const file = files[0];
+    const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!tiposPermitidos.includes(file.type)){
+      showToast('Solo se permiten archivos PDF, JPG o PNG');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024){
+      showToast('El archivo supera el límite de 10MB');
+      return;
+    }
+    selectedFile = file;
+    renderSelectedFile();
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  ['dragover','dragenter'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(evt => {
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); });
+  });
+  dropzone.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+
+  document.getElementById('btn-submit-record').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-submit-record');
+    const sospechoso = document.getElementById('rec-name').value.trim();
+    const cargo = document.getElementById('rec-charge').value;
+    const notas = document.getElementById('rec-notes').value.trim();
+
+    if (!sospechoso){
+      showToast('Falta el nombre del sospechoso');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('sospechoso', sospechoso);
+    formData.append('cargo', cargo);
+    formData.append('notas', notas);
+    if (selectedFile) formData.append('archivo', selectedFile);
+
+    btn.disabled = true; btn.textContent = 'Registrando...';
+    const { res, data } = await api('/upload-record.php', { method: 'POST', body: formData });
+    btn.disabled = false; btn.textContent = 'Registrar expediente';
+
+    if (!res.ok || !data.ok){
+      showToast(data.error || 'No se pudo registrar el expediente');
+      return;
+    }
+
+    showToast('Expediente registrado correctamente');
+    document.getElementById('rec-name').value = '';
+    document.getElementById('rec-notes').value = '';
+    selectedFile = null;
+    fileInput.value = '';
+    renderSelectedFile();
+    loadRecentRecords();
+  });
+
+  // ---------- LISTA DE EXPEDIENTES RECIENTES ----------
+  async function loadRecentRecords(){
+    const tbody = document.getElementById('recent-records-body');
+    const { res, data } = await api('/records.php');
+    if (!res.ok || !data.ok){
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-dim);">No se pudieron cargar los expedientes.</td></tr>';
+      return;
+    }
+    if (!data.expedientes.length){
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-dim);">Aún no hay expedientes registrados.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.expedientes.map(e => `
+      <tr>
+        <td>${escapeHtml(e.sospechoso)}</td>
+        <td>${escapeHtml(e.cargo)}</td>
+        <td>${escapeHtml(e.oficial || '—')}</td>
+      </tr>
+    `).join('');
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>
