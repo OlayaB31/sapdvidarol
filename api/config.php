@@ -10,9 +10,9 @@
  */
 
 define('DB_HOST', 'localhost');           // casi siempre es 'localhost' en hosting compartido
-define('DB_NAME', 'sapdvida_rol2026');     // ej: cpaneluser_sapd
-define('DB_USER', 'sapdvida_olaya');    // ej: cpaneluser_admin
-define('DB_PASS', 'Z32MCr=W;g(a');
+define('DB_NAME', 'u785137750_sapdvidarol');     // ej: cpaneluser_sapd
+define('DB_USER', 'u785137750_olaya31');    // ej: cpaneluser_admin
+define('DB_PASS', '6HFq06#;y');
 
 // --- Discord OAuth2 (lo obtienes en https://discord.com/developers/applications) ---
 define('DISCORD_CLIENT_ID', '1371727629547339797');
